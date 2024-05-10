@@ -7,7 +7,7 @@ Welcome to the Code Formatter and AST Visualizer repository! This project provid
 You can clone this repository using the following command:
 
 ```bash
-git clone [<repository_url>](https://github.com/Naindeep-Singh/code_format.git)
+git clone https://github.com/Naindeep-Singh/code_format.git
 ```
  
 ### 2) Setting Up the React App
@@ -30,8 +30,10 @@ Install the required Python libraries using pip:
 ```
 pip install flask flask-cors pycparser google graphviz
 ```
+### 4) Install Graphviz
+Install from [Graphviz Download](https://graphviz.org/download/)
 
-### 4) Running the Application
+### 5) Running the Application
 Start the Flask server by running the following command in the flask-server directory
 ```
 python app.py
