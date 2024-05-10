@@ -1,12 +1,11 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import re
-import argparse
-from pycparser import parse_file
-from graphviz import Digraph
 import google.generativeai as genai
 from graphviz import Source
+import os
 
+api_key = os.environ.get("API_KEY")
 app = Flask(__name__)
 CORS(app)
 
@@ -122,7 +121,7 @@ def format_code(tokens):
 
 
 def createAst(code):
-    genai.configure(api_key="")
+    genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(
         """From a C code I want to create an AST which is converted to dot code for GRAPHVIZ please do that for me (IMPORTANT:- Give me the simple dot code). Example:- (code: -#include<stdio.h> void main(){int c=1;printf("lol");} diagraph:- 
@@ -156,11 +155,6 @@ def createAst(code):
 
     # Render the graph to a PNG file
     graph.render("output", format="png", cleanup=True)
-
-
-# createAst(
-#     '#include<stdio.h> void main(){int c=1;printf("");}int next(){while(n ==2){printf("");}}'
-# )
 
 
 @app.route("/formatCode", methods=["POST"])
