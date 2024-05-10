@@ -1,6 +1,6 @@
-# Code Formatter and AST Visualizer
+# C Code Formatter and AST Visualizer
 
-Welcome to the Code Formatter and AST Visualizer repository! This project provides tools for formatting code and visualizing its Abstract Syntax Tree (AST). Follow the steps below to get started:
+Welcome to the C Code Formatter and AST Visualizer repository! This project provides tools for formatting code and visualizing its Abstract Syntax Tree (AST). Follow the steps below to get started:
 
 ### 1) Cloning the Repository
 
