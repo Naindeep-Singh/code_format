@@ -1,0 +1,128 @@
+body {
+  background: linear-gradient(
+    45deg,
+    lightgrey,
+    grey,
+    #4d4d4d,
+    #3c3c3c,
+    #1e1e1e,
+    #111111,
+    #000000
+  );
+  background-size: 400% 400%;
+  animation: gradientFlow 10s ease infinite;
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.App {
+  max-width: 1300px;
+  /* height: max-content; */
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #ff5733;
+  background: linear-gradient(
+    45deg,
+    #fedebe,
+    #ffc100,
+    #ff9a00,
+    #ff7400,
+    #ff4d00,
+    #ff0000
+  );
+  background-size: 200% 200%;
+  animation: gradientFlow 10s ease infinite;
+  text-align: center;
+  resize: vertical;
+}
+
+.ast-page{
+  max-width: 1300px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #ff5733;
+  background: linear-gradient(
+    45deg,
+    #fedebe,
+    #ffc100,
+    #ff9a00,
+    #ff7400,
+    #ff4d00,
+    #ff0000
+  );
+  background-size: 200% 200%;
+  animation: gradientFlow 10s ease infinite;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+h1 {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 100%;
+  height: 300px;
+  max-width: calc(100% - 22px);
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: bisque;
+  resize: vertical; /* Allow vertical resizing */
+}
+
+button {
+  padding: 10px 20px;
+  margin-left: 10px;
+  border: beige;
+  border-radius: 15px;
+  background-color: black;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: grey;
+}
+/* AstPage specific styles */
+
+.ast-page textarea {
+  width: 100%;
+  height: 200px;
+  max-width: calc(100% - 22px);
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: bisque;
+  resize: vertical;
+}
+
+img{
+  margin: 20;
+}
