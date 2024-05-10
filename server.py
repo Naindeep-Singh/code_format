@@ -122,7 +122,7 @@ def format_code(tokens):
 
 
 def createAst(code):
-    genai.configure(api_key="AIzaSyBJJQMsJbz5wTUgTe1615WUkMFEJaNyCG0")
+    genai.configure(api_key="")
     model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(
         """From a C code I want to create an AST which is converted to dot code for GRAPHVIZ please do that for me (IMPORTANT:- Give me the simple dot code). Example:- (code: -#include<stdio.h> void main(){int c=1;printf("lol");} diagraph:- 
