@@ -158,9 +158,9 @@ def createAst(code):
     graph.render("output", format="png", cleanup=True)
 
 
-createAst(
-    '#include<stdio.h> void main(){int c=1;printf("");}int next(){while(n ==2){printf("");}}'
-)
+# createAst(
+#     '#include<stdio.h> void main(){int c=1;printf("");}int next(){while(n ==2){printf("");}}'
+# )
 
 
 @app.route("/formatCode", methods=["POST"])

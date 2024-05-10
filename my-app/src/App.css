@@ -13,6 +13,8 @@ body {
   animation: gradientFlow 10s ease infinite;
 }
 
+
+
 @keyframes gradientFlow {
   0% {
     background-position: 0% 50%;
@@ -124,5 +126,6 @@ button:hover {
 }
 
 img{
-  margin: 20;
+  margin: 20px;
+  padding: 20px;
 }
