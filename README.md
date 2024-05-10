@@ -37,10 +37,10 @@ pip install -q -U google-generativeai
 ### 4) Generate your own gemini api key
 Obtain key from [Gemini API](https://ai.google.dev)
 
-### 4) Install Graphviz
+### 5) Install Graphviz
 Install from [Graphviz Download](https://graphviz.org/download/)
 
-### 5) Running the Application
+### 6) Running the Application
 Start the Flask server by running the following command in the flask-server directory
 ```
 python app.py
