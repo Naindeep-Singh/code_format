@@ -28,8 +28,15 @@ npm install react-router-dom
 Navigate to the flask-server directory.
 Install the required Python libraries using pip:
 ```
-pip install flask flask-cors pycparser google graphviz
+pip install flask flask-cors pycparser graphviz
 ```
+```
+pip install -q -U google-generativeai
+```
+
+### 4) Generate your own gemini api key
+Obtain key from [Gemini API](https://ai.google.dev)
+
 ### 4) Install Graphviz
 Install from [Graphviz Download](https://graphviz.org/download/)
 
