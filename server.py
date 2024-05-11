@@ -135,7 +135,7 @@ def createAst(code):
   0 -> 1
   1 -> 2
 }
-        . Important:- I only wanted the DOT code and nothing else as this is an api call (Make sure to not include any other words other than the code i have asked for) .Now this is the original c code -> """
+        . Important:- I only wanted the DOT code and nothing else as this is an api call (Make sure to not include any other words other than the code i have asked for and if you have to return quotes \" or \' you need to return it with a backslash character) .Now this is the original c code -> """
         + code
     )
     print(response.text)
