@@ -4,21 +4,24 @@ import re
 import google.generativeai as genai
 from graphviz import Source
 import os
+from pycparser import c_parser
 
 api_key = os.environ.get("API_KEY")
 app = Flask(__name__)
 CORS(app)
 
 TOKEN_TYPES = {
-    "KEYWORD": r"\b(if|else|while|for|return|do|switch|case|default|break|continue|int|float|double|char|void|struct|typedef|enum|union)\b",
+    "KEYWORD": r"\b(cout|cin|if|else|while|for|return|do|switch|case|default|break|continue|int|float|double|char|void|struct|typedef|enum|union)\b",
     "INLINE_COMMENT": r"\/\/.*$",
+    "STD": r"(std\:\:)",
     "IDENTIFIER": r"[a-zA-Z_][a-zA-Z0-9_]*",
     "STRING_LITERAL": r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'',
+    "STREAM_INSERTION": r"<<",
     "PUNCTUATION": r"[\(\)\[\]\{\};,]",
     "SYMBOL": r"[^\s\w]+",
     "NUMBER": r"\d+(\.\d*)?",
     "LITERAL": r"true|false",
-    "COMMENT": r"\/\/.*|\/\*[\s\S]*?\*\/",  # Single line and multi-line comments
+    "COMMENT": r"\/\/.*|\/\*[\s\S]*?\*\/",
     "WHITESPACE": r"\s+",
     "MAIN_FUNCTION": r"int\s+main\s*\(",
     "OPERATOR": r"\+|\-|\*|\/|==|!=|>|<|>=|<=|&&|\|\||%|!",
@@ -51,6 +54,7 @@ def tokenize_line(line):
                 break
         if not match:
             raise ValueError(f"Invalid token: {line}")
+    print(tokens)
     return tokens
 
 
@@ -58,66 +62,108 @@ def format_code(tokens):
     indent_level = 0
     formatted_code = ""
 
-    for i, (token_type, value) in enumerate(tokens):
-        if value == "{" and tokens[i + 1][0] != "STRING_LITERAL":
-            indent_level += 1
-            if tokens[i + 1][0] == "NUMBER":
-                formatted_code += value
-                continue
-            formatted_code += value + "\n" + "\t" * indent_level
-        elif value == "(" and (
-            tokens[i + 1][0] == "IDENTFIER" or tokens[i + 1][0] == "STRING_LITERAL"
-        ):
-            formatted_code += value
-        elif value == "=" or value == "==" or value == "/":
-            formatted_code += " " + value + " "
-        elif token_type == "INLINE_COMMENT":
-            formatted_code += "\n"
-        elif token_type == "OPERATOR":
-            formatted_code += " " + value + " "
-        elif value == "}":
-            indent_level -= 1
-            if i < len(tokens) - 1:
-                if tokens[i + 1][0] == "KEYWORD" and tokens[i + 1][1] != "else":
-                    formatted_code += "\n" + "\t" * indent_level + value + "\n"
+    try:
+        for i, (token_type, value) in enumerate(tokens):
+            if value == "{" and tokens[i + 1][0] != "STRING_LITERAL":
+                indent_level += 1
+                if tokens[i + 1][0] == "NUMBER":
+                    formatted_code += value
                     continue
-            if tokens[i - 1][0] == "NUMBER":
+                formatted_code += value + "\n" + "\t" * indent_level
+            elif value == "(" and (
+                tokens[i + 1][0] == "IDENTFIER" or tokens[i + 1][0] == "STRING_LITERAL"
+            ):
                 formatted_code += value
-                continue
-            formatted_code += "\n" + "\t" * indent_level + value
-        elif value == ";":
-            if (
-                tokens[i + 1][0] == "STRING_LITERAL"
-                or tokens[i + 1][0] == "PUNCTUATION"
-                or tokens[i + 1][0] == "IDENTIFIER"
-            ) and tokens[i + 1][1] != "printf":
+            elif value == "=" or value == "==" or value == "/":
+                formatted_code += " " + value + " "
+            elif token_type == "INLINE_COMMENT":
+                formatted_code += value + "\n" + "\t" * indent_level
+            elif token_type == "OPERATOR":
+                formatted_code += " " + value + " "
+            elif value == "}":
+                indent_level -= 1
+                if i < len(tokens) - 1:
+                    if tokens[i + 1][0] == "KEYWORD" and tokens[i + 1][1] != "else":
+                        formatted_code += (
+                            "\n"
+                            + "\t" * indent_level
+                            + value
+                            + "\n"
+                            + "\t" * indent_level
+                        )
+                        continue
+                if tokens[i - 1][0] == "NUMBER":
+                    formatted_code += value
+                    continue
+                formatted_code += "\n" + "\t" * indent_level + value
+            elif value == ";":
+                if (
+                    tokens[i + 1][0] == "STRING_LITERAL"
+                    or tokens[i + 1][0] == "PUNCTUATION"
+                    or (
+                        tokens[i + 1][0] == "IDENTIFIER"
+                        and (
+                            tokens[i - 1][0] == "NUMBER"
+                            or tokens[i - 1][0] == "IDENTIFIER"
+                        )
+                        and tokens[i - 3][0] == "IDENTIFIER"
+                    )
+                ) and tokens[i + 1][1] != "printf":
+                    formatted_code += value
+                    continue
+                formatted_code += value + "\n" + "\t" * indent_level
+            elif value == "[" or value == "]":
                 formatted_code += value
-                continue
-            formatted_code += value + "\n" + "\t" * indent_level
-        elif value == "[" or value == "]":
-            formatted_code += value
-        elif value in ["if", "else", "for", "while", "do"]:
-            formatted_code += " " + value + " "
-        elif token_type == "PUNCTUATION" and tokens[i + 1][0] == "PUNCTUATION":
-            formatted_code += value
-        elif token_type in ["OPERATOR", "PUNCTUATION"]:
-            formatted_code += " " + value + " "
-        elif token_type == "IDENTIFIER" and (
-            tokens[i - 1][1] == "KEYWORD" or tokens[i - 1][1] == "*"
-        ):
-            formatted_code += value + " "  # Add space after identifiers
-        elif token_type == "IDENTIFIER":
-            formatted_code += value  # Add space after identifiers
-        elif token_type == "KEYWORD":
-            formatted_code += value + " "
-        elif value == ">" and (
-            tokens[i + 1][0] == "KEYWORD" or tokens[i + 1][1] == "#"
-        ):
-            formatted_code += value + "\n"
-        else:
-            formatted_code += value
+            # elif value in ["if", "else", "for", "while", "do"]:
+            #     formatted_code += " " + value + " "
+            elif token_type == "PUNCTUATION" and tokens[i + 1][0] == "PUNCTUATION":
+                formatted_code += value
+            elif token_type in ["OPERATOR", "PUNCTUATION"]:
+                if tokens[i - 1][0] == "KEYWORD":
+                    formatted_code += value
+                    continue
+                formatted_code += " " + value + " "
+            elif token_type == "IDENTIFIER" and (
+                tokens[i - 1][1] == "KEYWORD" or tokens[i - 1][1] == "*"
+            ):
+                formatted_code += value + " "  # Add space after identifiers
+            elif token_type == "IDENTIFIER":
+                if tokens[i + 1][0] == "IDENTIFIER":
+                    formatted_code += value + " "
+                    continue
+                formatted_code += value  # Add space after identifiers
+            elif token_type == "KEYWORD":
+                formatted_code += value + " "
+            # new rule
+            elif token_type == "STD" and tokens[i + 1][0] == "STREAM_INSERTION":
+                if tokens[i + 2][0] == "STRING_LITERAL":
+                    formatted_code += (
+                        "\t" * indent_level
+                        + value
+                        + tokens[i + 1][1]
+                        + tokens[i + 2][1]
+                    )
+                    i += 2  # Skip next two tokens
+                    continue
+                else:
+                    formatted_code += value + tokens[i + 1][1]
+            elif value == ">" and (
+                tokens[i + 1][0] == "KEYWORD" or tokens[i + 1][1] == "#"
+            ):
+                formatted_code += value + "\n"
+            else:
+                formatted_code += value
 
-    return formatted_code.strip()
+        return formatted_code.strip()
+    except:
+        print("not nice")
+        return formatted_code.strip()
+
+
+def createAstText(code):
+    parser = c_parser.CParser()
+    ast = parser.parse(code)
+    return ast
 
 
 def createAst(code):
@@ -126,15 +172,15 @@ def createAst(code):
     response = model.generate_content(
         """From a C code I want to create an AST which is converted to dot code for GRAPHVIZ please do that for me (IMPORTANT:- Give me the simple dot code). Example:- (code: -#include<stdio.h> void main(){int c=1;printf("lol");} diagraph:- 
         digraph G {
-  node[shape=box]
+            node[shape=box]
 
-  0 [label="main"]
-  1 [label="c=1"]
-  2 [label="printf(\"lol\")"]
+            0 [label="main"]
+            1 [label="c=1"]
+            2 [label="printf(\"lol\")"]
 
-  0 -> 1
-  1 -> 2
-}
+            0 -> 1
+            1 -> 2
+        }
         . Important:- I only wanted the DOT code and nothing else as this is an api call (Make sure to not include any other words other than the code i have asked for and if you have to return quotes \" or \' you need to return it with a backslash character) .Now this is the original c code -> """
         + code
     )
@@ -160,14 +206,10 @@ def createAst(code):
 @app.route("/formatCode", methods=["POST"])
 def format_code_endpoint():
     data = request.json
-    # print("Received data:", data)
     source_code = data.get("source_code", "")
-    # print("Source code:", source_code)
     tokens = tokenize(source_code)
     formatted_code = format_code(tokens)
-    # print("Formatted code:", formatted_code)
     response = jsonify({"formatted_code": formatted_code})
-    # print("Response:", response)
     return response
 
 
@@ -178,6 +220,16 @@ def generateAST_endpoint():
     code = data.get("code", "")
     createAst(code)
     return send_file("output.png", mimetype="image/png")
+
+
+@app.route("/generateasttext", methods=["POST"])
+def generateASTText_endpoint():
+    data = request.json
+    print("Received data:", data)
+    code = data.get("code", "")
+    astCode = createAstText(code)
+    response = jsonify({"ast_code": str(astCode)})
+    return response
 
 
 if __name__ == "__main__":

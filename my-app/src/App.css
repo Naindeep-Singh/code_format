@@ -13,8 +13,6 @@ body {
   animation: gradientFlow 10s ease infinite;
 }
 
-
-
 @keyframes gradientFlow {
   0% {
     background-position: 0% 50%;
@@ -51,7 +49,7 @@ body {
   resize: vertical;
 }
 
-.ast-page{
+.ast-page {
   max-width: 1300px;
   margin: 20px auto;
   padding: 20px;
@@ -74,6 +72,8 @@ body {
 }
 
 .container {
+  justify-content: space-between;/* Horizontally center */
+  align-items: center;
   display: flex;
   margin-bottom: 20px;
 }
@@ -125,7 +125,39 @@ button:hover {
   resize: vertical;
 }
 
-img{
-  margin: 20px;
-  padding: 20px;
+.select-wrapper {
+  margin-left: auto; /* Position the wrapper relative to its containing div */
+}
+
+.select-wrapper select {
+  appearance: none; /* Removes default arrow icon */
+  padding: 8px 16px; /* Adjust padding to your liking */
+  border-radius: 5px; /* Rounded corners */
+  border: 1px solid #ccc; /* Border color */
+  background-color: #fff; /* Background color */
+}
+
+/* Custom dropdown arrow */
+.select-wrapper::after {
+  content: "▼"; /* Unicode arrow character */
+  position: absolute; /* Position the arrow relative to the wrapper */
+  top: calc(50% - 6px); /* Center vertically */
+  right: 8px; /* Distance from the right edge */
+  color: #888; /* Arrow color */
+}
+
+.styled-select {
+  height: 30px;
+  margin-left: 10px;
+  border-radius: 5px; /* Rounded corners */
+  border: 1px solid #ccc;
+  background-color: black; /* Background color */
+  color: white; /* Text color */
+}
+
+.langSelect{
+  display: flex;
+  flex-direction: row;
+  justify-content: center; /* Horizontally center */
+  align-items: center;
 }

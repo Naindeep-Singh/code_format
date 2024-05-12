@@ -3,15 +3,17 @@ import tkinter as tk
 from pycparser import c_parser
 
 TOKEN_TYPES = {
-    "KEYWORD": r"\b(if|else|while|for|return|do|switch|case|default|break|continue|int|float|double|char|void|struct|typedef|enum|union)\b",
+    "KEYWORD": r"\b(cout|cin|if|else|while|for|return|do|switch|case|default|break|continue|int|float|double|char|void|struct|typedef|enum|union)\b",
     "INLINE_COMMENT": r"\/\/.*$",
+    "STD": r"(std\:\:)",
     "IDENTIFIER": r"[a-zA-Z_][a-zA-Z0-9_]*",
     "STRING_LITERAL": r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'',
+    "STREAM_INSERTION": r"<<",
     "PUNCTUATION": r"[\(\)\[\]\{\};,]",
     "SYMBOL": r"[^\s\w]+",
     "NUMBER": r"\d+(\.\d*)?",
     "LITERAL": r"true|false",
-    "COMMENT": r"\/\/.*|\/\*[\s\S]*?\*\/",  
+    "COMMENT": r"\/\/.*|\/\*[\s\S]*?\*\/",
     "WHITESPACE": r"\s+",
     "MAIN_FUNCTION": r"int\s+main\s*\(",
     "OPERATOR": r"\+|\-|\*|\/|==|!=|>|<|>=|<=|&&|\|\||%|!",
@@ -44,6 +46,7 @@ def tokenize_line(line):
                 break
         if not match:
             raise ValueError(f"Invalid token: {line}")
+    print(tokens)
     return tokens
 
 
@@ -51,66 +54,102 @@ def format_code(tokens):
     indent_level = 0
     formatted_code = ""
 
-    for i, (token_type, value) in enumerate(tokens):
-        if value == "{" and tokens[i + 1][0] != "STRING_LITERAL":
-            indent_level += 1
-            if tokens[i + 1][0] == "NUMBER":
-                formatted_code += value
-                continue
-            formatted_code += value + "\n" + "\t" * indent_level
-        elif value == "(" and (
-            tokens[i + 1][0] == "IDENTFIER" or tokens[i + 1][0] == "STRING_LITERAL"
-        ):
-            formatted_code += value
-        elif value == "=" or value == "==" or value == "/":
-            formatted_code += " " + value + " "
-        elif token_type == "INLINE_COMMENT":
-            formatted_code += "\n"
-        elif token_type == "OPERATOR":
-            formatted_code += " " + value + " "
-        elif value == "}":
-            indent_level -= 1
-            if i < len(tokens) - 1:
-                if tokens[i + 1][0] == "KEYWORD" and tokens[i + 1][1] != "else":
-                    formatted_code += "\n" + "\t" * indent_level + value + "\n"
+    try:
+        for i, (token_type, value) in enumerate(tokens):
+            if value == "{" and tokens[i + 1][0] != "STRING_LITERAL":
+                indent_level += 1
+                if tokens[i + 1][0] == "NUMBER":
+                    formatted_code += value
                     continue
-            if tokens[i - 1][0] == "NUMBER":
+                formatted_code += value + "\n" + "\t" * indent_level
+            elif value == "(" and (
+                tokens[i + 1][0] == "IDENTFIER" or tokens[i + 1][0] == "STRING_LITERAL"
+            ):
                 formatted_code += value
-                continue
-            formatted_code += "\n" + "\t" * indent_level + value
-        elif value == ";":
-            if (
-                tokens[i + 1][0] == "STRING_LITERAL"
-                or tokens[i + 1][0] == "PUNCTUATION"
-                or tokens[i + 1][0] == "IDENTIFIER"
-            ) and tokens[i + 1][1] != "printf":
+            elif value == "=" or value == "==" or value == "/":
+                formatted_code += " " + value + " "
+            elif token_type == "INLINE_COMMENT":
+                formatted_code += value + "\n" + "\t" * indent_level
+            elif token_type == "OPERATOR":
+                formatted_code += " " + value + " "
+            elif value == "}":
+                indent_level -= 1
+                if i < len(tokens) - 1:
+                    if tokens[i + 1][0] == "KEYWORD" and tokens[i + 1][1] != "else":
+                        formatted_code += (
+                            "\n"
+                            + "\t" * indent_level
+                            + value
+                            + "\n"
+                            + "\t" * indent_level
+                        )
+                        continue
+                if tokens[i - 1][0] == "NUMBER":
+                    formatted_code += value
+                    continue
+                formatted_code += "\n" + "\t" * indent_level + value
+            elif value == ";":
+                if (
+                    tokens[i + 1][0] == "STRING_LITERAL"
+                    or tokens[i + 1][0] == "PUNCTUATION"
+                    or (
+                        tokens[i + 1][0] == "IDENTIFIER"
+                        and (
+                            tokens[i - 1][0] == "NUMBER"
+                            or tokens[i - 1][0] == "IDENTIFIER"
+                        )
+                        and tokens[i - 3][0] == "IDENTIFIER"
+                    )
+                ) and tokens[i + 1][1] != "printf":
+                    formatted_code += value
+                    continue
+                formatted_code += value + "\n" + "\t" * indent_level
+            elif value == "[" or value == "]":
                 formatted_code += value
-                continue
-            formatted_code += value + "\n" + "\t" * indent_level
-        elif value == "[" or value == "]":
-            formatted_code += value
-        elif value in ["if", "else", "for", "while", "do"]:
-            formatted_code += " " + value + " "
-        elif token_type == "PUNCTUATION" and tokens[i + 1][0] == "PUNCTUATION":
-            formatted_code += value
-        elif token_type in ["OPERATOR", "PUNCTUATION"]:
-            formatted_code += " " + value + " "
-        elif token_type == "IDENTIFIER" and (
-            tokens[i - 1][1] == "KEYWORD" or tokens[i - 1][1] == "*"
-        ):
-            formatted_code += value + " "  # Add space after identifiers
-        elif token_type == "IDENTIFIER":
-            formatted_code += value  # Add space after identifiers
-        elif token_type == "KEYWORD":
-            formatted_code += value + " "
-        elif value == ">" and (
-            tokens[i + 1][0] == "KEYWORD" or tokens[i + 1][1] == "#"
-        ):
-            formatted_code += value + "\n"
-        else:
-            formatted_code += value
+            # elif value in ["if", "else", "for", "while", "do"]:
+            #     formatted_code += " " + value + " "
+            elif token_type == "PUNCTUATION" and tokens[i + 1][0] == "PUNCTUATION":
+                formatted_code += value
+            elif token_type in ["OPERATOR", "PUNCTUATION"]:
+                if tokens[i - 1][0] == "KEYWORD":
+                    formatted_code += value
+                    continue
+                formatted_code += " " + value + " "
+            elif token_type == "IDENTIFIER" and (
+                tokens[i - 1][1] == "KEYWORD" or tokens[i - 1][1] == "*"
+            ):
+                formatted_code += value + " "  # Add space after identifiers
+            elif token_type == "IDENTIFIER":
+                if tokens[i + 1][0] == "IDENTIFIER":
+                    formatted_code += value + " "
+                    continue
+                formatted_code += value  # Add space after identifiers
+            elif token_type == "KEYWORD":
+                formatted_code += value + " "
+            # new rule
+            elif token_type == "STD" and tokens[i + 1][0] == "STREAM_INSERTION":
+                if tokens[i + 2][0] == "STRING_LITERAL":
+                    formatted_code += (
+                        "\t" * indent_level
+                        + value
+                        + tokens[i + 1][1]
+                        + tokens[i + 2][1]
+                    )
+                    i += 2  # Skip next two tokens
+                    continue
+                else:
+                    formatted_code += value + tokens[i + 1][1]
+            elif value == ">" and (
+                tokens[i + 1][0] == "KEYWORD" or tokens[i + 1][1] == "#"
+            ):
+                formatted_code += value + "\n"
+            else:
+                formatted_code += value
 
-    return formatted_code.strip()
+        return formatted_code.strip()
+    except:
+        print("not nice")
+        return formatted_code.strip()
 
 
 def format_source_code(event=None):
@@ -125,11 +164,14 @@ def format_source_code(event=None):
     ast_text.delete("1.0", tk.END)
     ast_text.insert(tk.END, str(ast))
 
+
 def parse_formatted_code(code):
     # Parse the formatted code using pycparser
     parser = c_parser.CParser()
     ast = parser.parse(code)
+    print(ast)
     return ast
+
 
 def clear_blocks(event=None):
     input_text.delete("1.0", tk.END)
@@ -150,7 +192,9 @@ input_label = tk.Label(input_frame, text="Input Code:")
 input_label.pack()
 
 input_scroll = tk.Scrollbar(input_frame, orient=tk.HORIZONTAL)
-input_text = tk.Text(input_frame, height=20, width=50, wrap="none", xscrollcommand=input_scroll.set)
+input_text = tk.Text(
+    input_frame, height=20, width=50, wrap="none", xscrollcommand=input_scroll.set
+)
 input_scroll.config(command=input_text.xview)
 input_scroll.pack(side=tk.BOTTOM, fill=tk.X)
 input_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -162,7 +206,9 @@ output_label = tk.Label(output_frame, text="Formatted Code:")
 output_label.pack()
 
 output_scroll = tk.Scrollbar(output_frame, orient=tk.HORIZONTAL)
-output_text = tk.Text(output_frame, height=20, width=50, wrap="none", xscrollcommand=output_scroll.set)
+output_text = tk.Text(
+    output_frame, height=20, width=50, wrap="none", xscrollcommand=output_scroll.set
+)
 output_scroll.config(command=output_text.xview)
 output_scroll.pack(side=tk.BOTTOM, fill=tk.X)
 output_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)

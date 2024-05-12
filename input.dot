@@ -1,16 +1,14 @@
 digraph G {
-  node[shape=box]
+            node[shape=box]
 
-  0 [label="main"]
-  1 [label="c=1"]
-  2 [label="printf(\"\")"]
-  3 [label="next"]
-  4 [label="while(n ==2)"]
-  5 [label="printf(\"\")"]
+            0 [label="main"]
+            1 [label="a = 10"]
+            2 [label="b = 10"]
+            3 [label="a = b + 3"]
+            4 [label="printf(\"\")"]
 
-  0 -> 1
-  1 -> 2
-  2 -> 3
-  3 -> 4
-  4 -> 5
-}
+            0 -> 1
+            0 -> 2
+            0 -> 3
+            0 -> 4
+        }

@@ -4,13 +4,10 @@ import axios from "axios";
 
 function FormatPage() {
   const [code, setCode] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("C");
 
   const handleChange = (event) => {
     setCode(event.target.value);
-
-    // // Automatically adjust the height of the textarea
-    // event.target.style.height = "auto";
-    // event.target.style.height = event.target.scrollHeight + "px";
   };
 
   const formatCode = async () => {
@@ -19,10 +16,6 @@ function FormatPage() {
         source_code: code,
       });
       setCode(response.data.formatted_code);
-
-      // Adjusting height automatically, not working
-      // response.data.style.height = "auto";
-      // response.data.style.height = response.data.scrollHeight + "px";
     } catch (error) {
       console.error("Error formatting code:", error);
     }
@@ -32,13 +25,31 @@ function FormatPage() {
     setCode("");
   };
 
+  const handleLanguageChange = (event) => {
+    setSelectedLanguage(event.target.value);
+  };
+
   return (
     <>
       <div className="App">
         <h1>Code Formatter</h1>
         <div className="container">
-          <button onClick={formatCode}>Format</button>
-          <button onClick={clearCode}>Clear</button>
+          <div>
+            <button onClick={formatCode}>Format</button>
+            <button onClick={clearCode}>Clear</button>
+          </div>
+
+          <div className="langSelect">
+            <p>Choose language:</p>
+            <select
+              value={selectedLanguage}
+              onChange={handleLanguageChange}
+              className="styled-select"
+            >
+              <option value="C">C</option>
+              <option value="C++">C++</option>
+            </select>
+          </div>
         </div>
 
         <textarea
